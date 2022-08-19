@@ -1,0 +1,34 @@
+{
+  "canisters": {
+    "hellopipeline1": {
+      "main": "src/hellopipeline1/main.mo",
+      "type": "motoko"
+    },
+    "hellopipeline1_assets": {
+      "dependencies": [
+        "hellopipeline1"
+      ],
+      "frontend": {
+        "entrypoint": "src/hellopipeline1_assets/src/index.html"
+      },
+      "source": [
+        "src/hellopipeline1_assets/assets",
+        "dist/hellopipeline1_assets/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}
