@@ -37,7 +37,7 @@ const canisterEnvVariables = initCanisterEnv();
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-const frontendDirectory = "hellopipeline1_assets";
+const frontendDirectory = "hellosnapshot1_assets";
 
 const frontend_entry = path.join("src", frontendDirectory, "src", "index.html");
 

@@ -1,19 +1,19 @@
 {
   "canisters": {
-    "hellopipeline1": {
-      "main": "src/hellopipeline1/main.mo",
+    "hellosnapshot1": {
+      "main": "src/hellosnapshot1/main.mo",
       "type": "motoko"
     },
-    "hellopipeline1_assets": {
+    "hellosnapshot1_assets": {
       "dependencies": [
-        "hellopipeline1"
+        "hellosnapshot1"
       ],
       "frontend": {
-        "entrypoint": "src/hellopipeline1_assets/src/index.html"
+        "entrypoint": "src/hellosnapshot1_assets/src/index.html"
       },
       "source": [
-        "src/hellopipeline1_assets/assets",
-        "dist/hellopipeline1_assets/"
+        "src/hellosnapshot1_assets/assets",
+        "dist/hellosnapshot1_assets/"
       ],
       "type": "assets"
     }

@@ -6,5 +6,5 @@ package-lock.json
 # build dir
 .dfx/*
 dist/*
-
+src/declarations/*
 canister_ids.json
