@@ -1,6 +1,6 @@
 import { hellosnapshot1 } from "../../declarations/hellosnapshot1";
 
-document.getElementById("greeting").innerText = "... Please Wait ...";
+document.getElementById("greeting").innerText = "";
 
 document.getElementById("historyBuffer").innerText = "... Please Wait ...";
 
