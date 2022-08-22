@@ -6,7 +6,7 @@ actor {
 
     stable var theHistoryStable : [Text] = [];
 
-    let theHistoryBuffer : Buffer.Buffer<Text> = Buffer.Buffer(0);
+    var theHistoryBuffer : Buffer.Buffer<Text> = Buffer.Buffer(0);
 
     public shared({caller}) func greet(name : Text) : async Text {
 
