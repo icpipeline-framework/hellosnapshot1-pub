@@ -3,7 +3,12 @@ import StableMemory "mo:base/ExperimentalStableMemory";
 import Cycles "mo:base/ExperimentalCycles";
 import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
+import Time "mo:base/Time";
 import Principal "mo:base/Principal";
+import Int "mo:base/Int";
+
+import ICArchiveUtils "icArchiveUtils"; // the module from ICArchive (icArchiveUtils.mo)
+
 
 actor {
     /////////////////////////////////
@@ -13,9 +18,11 @@ actor {
     /// ICPIPELINE VARS
 
     //prod
-    var icpipeline_manager_canister: Principal =  (Principal.fromText("c4fg7-saaaa-aaaah-abkta-cai"));
+    // var icpmCanisterId: Text = "c4fg7-saaaa-aaaah-abkta-cai";
+    // var archiveCanisterId: Text =  "c4fg7-saaaa-aaaah-abkta-cai";
     //dev
-    //var icpipeline_manager_canister: Principal =  (Principal.fromText("rkp4c-7iaaa-aaaaa-aaaca-cai"));
+    var icpmCanisterId: Text = "r7inp-6aaaa-aaaaa-aaabq-cai";
+    var archiveCanisterId: Text =  "qhbym-qaaaa-aaaaa-aaafq-cai";
     
 
     /// ICPIPELINE TYPES
@@ -31,7 +38,23 @@ actor {
         cycleAvailable : Nat;
     };
 
+    // ICARCHIVE TYPES - BEGIN
 
+    type Archive =ICArchiveUtils.Archive;
+    type RestoreArchiveResponse = ICArchiveUtils.RestoreArchiveResponse;
+    type ArchiveListResponse = ICArchiveUtils.ArchiveListResponse;
+    type ArchiveCanisterResponse = ICArchiveUtils.ArchiveCanisterResponse;
+    type ArchiveChunk = ICArchiveUtils.ArchiveChunk ;
+    type ArchiveResponse = ICArchiveUtils.ArchiveResponse  ;
+    type ArchiveChunkResponse = ICArchiveUtils.ArchiveChunkResponse ;
+
+    // ICARCHIVE TYPES - END 
+
+
+    
+    // number of bytes (Nat8) 
+    var archiveChunkSize: Int = 3072; // 3k chunk
+    
     /////////////////////////////////
     /// ICPIPELINE SUPPORT END //////
     /////////////////////////////////
@@ -40,6 +63,16 @@ actor {
     stable var theHistoryStable : [Text] = [];
 
     var theHistoryBuffer : Buffer.Buffer<Text> = Buffer.Buffer(0);
+
+    // public type MyArchiveObject = {
+    //     historyBufferObject :  Buffer.Buffer<Text>;
+    // } ; // end the backup object
+    public type MyArchiveObject = {
+        historyArrayObject : [Text];
+    } ; // end the backup object
+
+
+
 
     public shared({caller}) func greet(name : Text) : async Text {
 
@@ -68,6 +101,190 @@ actor {
     };
 
 
+  // ********************************************* 
+  // ************* ICArchive Functions **************
+  // *********************************************
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  public shared({caller}) func doICArchiveMain () : async ArchiveResponse {
+    
+    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      assert(false);
+    };// end if we need to assert
+
+    var tempMsg: Text = "";
+    var tempResponseStatus: Text = "Green" ;
+    let now = Time.now();
+    
+      
+    var tempArchive : Archive = {
+      id = 0;
+      archiveType = ""; 
+      archiveMsg =  "";
+      chunkCount = 0 ;
+      created = 0;
+      lastUpdated = 0;
+    };
+
+  
+
+      
+            // create object for archive 
+            var tempArchiveObject : MyArchiveObject = {
+                historyArrayObject = theHistoryStable;
+              };
+
+            var tempArchiveType : Text = "My History Archive";
+            var tempArchiveMsg : Text = "User Requested Archive";
+
+            // convert archive to blob and send to archive func 
+
+            var tempBlobArchive : Blob = to_candid(tempArchiveObject);  
+
+            var tempDoArchiveResponse : ArchiveResponse = await ICArchiveUtils.doArchive(archiveCanisterId, archiveChunkSize, tempBlobArchive, tempArchiveType, tempArchiveMsg) ;
+
+            tempArchive := tempDoArchiveResponse.archive;
+
+
+    var tempArchiveResponse: ArchiveResponse = 
+    {
+      archive = tempArchive;
+      msg = tempMsg;
+      timeStamp = now;
+      responseStatus = tempResponseStatus;
+    };
+    return tempArchiveResponse;
+    
+  }; // end doICArchiveMain
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  public shared({caller})  func restoreICArchiveMain ( tempArchiveId : Int, archiveFirst : Bool) : async  RestoreArchiveResponse {
+
+
+    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      assert(false);
+    };// end if we need to assert
+
+    var tempMsg: Text = "";
+    var tempResponseStatus: Text = "Green" ;
+    let now = Time.now();
+
+
+    var tempArchiveObjectRestored : MyArchiveObject = {
+        historyArrayObject =[] ;
+    };
+
+    var tempArchiveFirst : Archive = {
+      id = 0;
+      archiveType = ""; 
+      archiveMsg =  "";
+      chunkCount = 0 ;
+      created = 0;
+      lastUpdated = 0;
+    };
+    var tempArchiveRestore : Archive = {
+      id = 0;
+      archiveType = ""; 
+      archiveMsg =  "";
+      chunkCount = 0 ;
+      created = 0;
+      lastUpdated = 0;
+    };
+
+    var tempArchiveChunk : ArchiveChunk = {
+      archiveId = 0;
+      chunkNum = 0 ;
+      chunk = [] ;
+      created = 0;
+      lastUpdated = 0;
+    };
+
+
+      tempArchiveRestore := await ICArchiveUtils.getArchivebById(archiveCanisterId, tempArchiveId);
+
+      // ok so we now have an archive and we want to update the local variables ... but we want to archive the existing ones first
+
+      if (tempArchiveRestore.id > 0 ) {
+        
+        
+        if (archiveFirst == true) {
+
+            // create object for archive 
+            var tempArchiveObject : MyArchiveObject = {
+                historyArrayObject = theHistoryStable;
+              };
+
+            var tempArchiveType : Text = "My History Archive";
+
+            var tempArchiveMsg : Text = "User Requested Archive";
+
+            // convert archive to blob and send to archive func 
+
+            var tempBlobArchive : Blob = to_candid(tempArchiveObject);  
+
+            var tempDoArchiveResponse : ArchiveResponse = await ICArchiveUtils.doArchive(archiveCanisterId, archiveChunkSize, tempBlobArchive, tempArchiveType, tempArchiveMsg) ;
+
+            tempArchiveFirst := tempDoArchiveResponse.archive;
+
+
+        }; // end if archive first
+
+        // now we need to get the archive from the archive canister 
+        
+        var tempRestoredBlob : Blob = await ICArchiveUtils.restoreArchive(archiveCanisterId,tempArchiveRestore ) ;
+
+        // then we convert the blob back to the candid ArchiveICPM
+        
+        var tempBlobReturned : ?MyArchiveObject = from_candid(tempRestoredBlob); 
+
+       switch tempBlobReturned {
+         case (?val) {
+            //Debug.print("RESTORE ARCHIVE - have a value" ) ;
+            tempArchiveObjectRestored:=val ;
+
+          };
+         case null {
+            //Debug.print("RESTORE ARCHIVE - have no value " ) ;
+          };
+       };// end switch
+        
+        
+        //Debug.print("RESTORE ARCHIVE - tempArchiveObjectRestore  " # debug_show(tempArchiveObjectRestore));
+
+        // now we restore the one we just recieved. 
+        
+
+        theHistoryStable := tempArchiveObjectRestored.historyArrayObject ;
+
+
+
+        tempResponseStatus := "Green" ;
+        
+      } else {
+        
+        tempMsg := "We expected a Archive but did not recieve one from the archive canister with id: "#Int.toText(tempArchiveId);
+        tempResponseStatus := "Red" ;
+
+      
+      };// end if archive is there  
+      
+
+
+    var tempRestoreArchiveResponse: RestoreArchiveResponse = 
+    {
+      msg = tempMsg;
+      timeStamp = now;
+      responseStatus = tempResponseStatus;
+    };
+
+    return tempRestoreArchiveResponse;
+    
+  }; // end restoreICArchiveMain
+
+
 
   // ********************************************* 
   // ************* Memory Functions **************
@@ -77,9 +294,9 @@ actor {
   
   public shared({caller}) func getICPipelineCanisterInfo () : async  CanisterInfo {
     
-    // if ( icpipeline_manager_canister != caller ) {
-    //   assert(false);
-    // };// end if we need to assert
+    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      assert(false);
+    };// end if we need to assert
 
       return {
           rts_version = Prim.rts_version();
