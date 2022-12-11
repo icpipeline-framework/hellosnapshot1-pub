@@ -10,7 +10,7 @@ import Int "mo:base/Int";
 import ICArchiveUtils "icArchiveUtils"; // the module from ICArchive (icArchiveUtils.mo)
 
 
-actor {
+actor Self {
     /////////////////////////////////
     /// ICPIPELINE SUPPORT BEGIN ////
     /////////////////////////////////
@@ -25,6 +25,11 @@ actor {
     var archiveCanisterId: Text =  "qhbym-qaaaa-aaaaa-aaafq-cai";
     
 
+    public type IC = actor {
+    canister_status : { canister_id : canister_id } -> async canister_status;
+    };
+    let ic : IC = actor("aaaaa-aa");
+
     /// ICPIPELINE TYPES
 
     public type CanisterInfo = {
@@ -36,6 +41,28 @@ actor {
         rts_max_live_size : Nat;
         cycleBalance : Nat;
         cycleAvailable : Nat;
+    };
+      
+    public type canister_id = Principal;
+
+    public type definite_canister_settings = {
+      freezing_threshold : Nat;
+      controllers : [Principal];
+      memory_allocation : Nat;
+      compute_allocation : Nat;
+    };
+
+    public type canister_status = {
+      status : { #stopped; #stopping; #running };
+      memory_size : Nat;
+      cycles : Nat;
+      settings : definite_canister_settings;
+      module_hash : ?[Nat8];
+    };
+
+    public type ICPMCanisterInfo = {
+        canisterInfoObject : CanisterInfo;
+        canister_statusObject: canister_status ;
     };
 
     // ICARCHIVE TYPES - BEGIN
@@ -292,13 +319,13 @@ actor {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  public shared({caller}) func getICPipelineCanisterInfo () : async  CanisterInfo {
+  public shared({caller}) func getICPipelineCanisterInfo () : async  ICPMCanisterInfo {
     
     if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
       assert(false);
     };// end if we need to assert
 
-      return {
+    var tempCanisterInfo : CanisterInfo =  {
           rts_version = Prim.rts_version();
           rts_memory_size = Prim.rts_memory_size();
           rts_heap_size = Prim.rts_heap_size();
@@ -309,8 +336,19 @@ actor {
           cycleAvailable = Cycles.available();
 
       };
+
+      let tempCanisterPrincipal = Principal.fromActor(Self);
+      var tempCanisterStatus : canister_status =  await ic.canister_status({canister_id = tempCanisterPrincipal }) ;
+
+      var tempICPMCanisterInfo: ICPMCanisterInfo =  { 
+        canisterInfoObject = tempCanisterInfo;
+        canister_statusObject = tempCanisterStatus ;
+      };
+
+      return tempICPMCanisterInfo ;
+      
     
   }; // end getCanisterInfo 
 
     
-};
+}; // end actor Self
