@@ -24,6 +24,7 @@ import Debug "mo:base/Debug";
   // // ICARCHIVE TYPES - BEGIN
 
   // type Archive =ICArchiveUtils.Archive;
+  // type SetArchiveResponse = ICArchiveUtils.SetArchiveResponse;
   // type RestoreArchiveResponse = ICArchiveUtils.RestoreArchiveResponse;
   // type ArchiveListResponse = ICArchiveUtils.ArchiveListResponse;
   // type ArchiveCanisterResponse = ICArchiveUtils.ArchiveCanisterResponse;
@@ -41,6 +42,28 @@ import Debug "mo:base/Debug";
   // // number of bytes (Nat8) 
   // var archiveChunkSize: Int = 3072; // 3k chunk
 
+  // if you want to change the archive without deployment or want to add the archive later you can add this interface:
+
+      // public shared({caller})  func setArchiveCanisterMain ( newArchiveCanisterId : Text, replace : Bool) : async  SetArchiveResponse {
+
+
+      //   if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      //     assert(false);
+      //   };// end if we need to assert
+
+      //     if (replace == true and Principal.fromText(newArchiveCanisterId)  ) {
+      //       // if we are asked to replace and it is a valid principal we add it.
+      //       archiveCanisterId := newArchiveCanisterId ;
+
+      //     };
+      //   var tempSetArchiveResponse : SetArchiveResponse = {
+      //       currentArchiveCanisterId = archiveCanisterId ;
+      //   };
+      //   return tempSetArchiveResponse;
+
+      // } // end setArchiveCanisterMain 
+      
+  // Now Example Functions that should be added and
 
   // *******************************
 
@@ -51,12 +74,17 @@ module {
 
   ///////////////////////////////////  ICARCHIVE GENERIC
 
+  public type SetArchiveResponse = {
+      currentArchiveCanisterId : Text;
+  } ;
+
 
   public type Archive = {
     id: Int;
     chunkCount: Int;
     archiveType: Text; // user defined type that will separate archive objects
     archiveMsg: Text;
+    sourceCanister: Text;
     created: Int;
     lastUpdated: Int;
   }; // end Archive
@@ -122,6 +150,7 @@ module {
         id = 0;
         archiveType = ""; 
         archiveMsg =  "";
+        sourceCanister = "";
         chunkCount = 0 ;
         created = 0;
         lastUpdated = 0;
@@ -331,6 +360,7 @@ module {
         id = 0;
         archiveType = ""; 
         archiveMsg =  "";
+        sourceCanister = "" ;
         chunkCount = 0 ;
         created = 0;
         lastUpdated = 0;

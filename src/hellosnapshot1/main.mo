@@ -21,8 +21,8 @@ actor Self {
     // var icpmCanisterId: Text = "c4fg7-saaaa-aaaah-abkta-cai";
     // var archiveCanisterId: Text =  "c4fg7-saaaa-aaaah-abkta-cai";
     //dev
-    var icpmCanisterId: Text = "r7inp-6aaaa-aaaaa-aaabq-cai";
-    var archiveCanisterId: Text =  "qhbym-qaaaa-aaaaa-aaafq-cai";
+    stable var icpmCanisterId: Text = "3qtpz-mbcpc-q7cp7-d5x3u-s6ot5-bmg4p-2rrez-p7tcg-jcx5l-tanzf-3ae";
+    stable var archiveCanisterId: Text =  "s55qq-oqaaa-aaaaa-aaakq-cai";
     
 
     public type IC = actor {
@@ -31,6 +31,13 @@ actor Self {
     let ic : IC = actor("aaaaa-aa");
 
     /// ICPIPELINE TYPES
+
+
+    public type SetICPipelineResponse = {
+        currentICPipelineCanister : Text;
+    } ;
+
+
 
     public type CanisterInfo = {
         rts_version : Text;
@@ -65,9 +72,11 @@ actor Self {
         canister_statusObject: canister_status ;
     };
 
+
     // ICARCHIVE TYPES - BEGIN
 
     type Archive =ICArchiveUtils.Archive;
+    type SetArchiveResponse = ICArchiveUtils.SetArchiveResponse;
     type RestoreArchiveResponse = ICArchiveUtils.RestoreArchiveResponse;
     type ArchiveListResponse = ICArchiveUtils.ArchiveListResponse;
     type ArchiveCanisterResponse = ICArchiveUtils.ArchiveCanisterResponse;
@@ -82,6 +91,32 @@ actor Self {
     // number of bytes (Nat8) 
     var archiveChunkSize: Int = 3072; // 3k chunk
     
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  public shared({caller})  func setICPipelineCanisterMain ( newICPipelineCanisterId : Text, replace : Bool) : async  SetICPipelineResponse {
+
+
+    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      assert(false);
+    };// end if we need to assert
+
+      if (replace == true  ) {
+        // if we are asked to replace and it is a valid principal we add it.
+        var checkPrincipal :Principal  = Principal.fromText(newICPipelineCanisterId);
+        
+        icpmCanisterId := newICPipelineCanisterId ;
+
+      };
+    var tempSetICPipelineResponse : SetICPipelineResponse = {
+        currentICPipelineCanister = icpmCanisterId ;
+    };
+    return tempSetICPipelineResponse;
+
+  }; // end setICPipelineCanisterMain 
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     /////////////////////////////////
     /// ICPIPELINE SUPPORT END //////
     /////////////////////////////////
@@ -134,6 +169,29 @@ actor Self {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
+  public shared({caller})  func setArchiveCanisterMain ( newArchiveCanisterId : Text, replace : Bool) : async  SetArchiveResponse {
+
+
+    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+      assert(false);
+    };// end if we need to assert
+
+      if (replace == true  ) {
+        // if we are asked to replace and it is a valid principal we add it.
+        var checkPrincipal :Principal  = Principal.fromText(newArchiveCanisterId);
+        
+        archiveCanisterId := newArchiveCanisterId ;
+
+      };
+    var tempSetArchiveResponse : SetArchiveResponse = {
+        currentArchiveCanisterId = archiveCanisterId ;
+    };
+    return tempSetArchiveResponse;
+
+  }; // end setArchiveCanisterMain 
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   public shared({caller}) func doICArchiveMain () : async ArchiveResponse {
     
     if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
@@ -149,6 +207,7 @@ actor Self {
       id = 0;
       archiveType = ""; 
       archiveMsg =  "";
+      sourceCanister = "";
       chunkCount = 0 ;
       created = 0;
       lastUpdated = 0;
@@ -208,6 +267,7 @@ actor Self {
       id = 0;
       archiveType = ""; 
       archiveMsg =  "";
+      sourceCanister= "";
       chunkCount = 0 ;
       created = 0;
       lastUpdated = 0;
@@ -216,6 +276,7 @@ actor Self {
       id = 0;
       archiveType = ""; 
       archiveMsg =  "";
+      sourceCanister = "" ;
       chunkCount = 0 ;
       created = 0;
       lastUpdated = 0;
