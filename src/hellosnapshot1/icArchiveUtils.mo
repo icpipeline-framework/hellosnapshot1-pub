@@ -253,7 +253,7 @@ module {
               tempArchiveChunk := {
                 archiveId = tempArchive.id;
                 chunkNum = tempChunkNum ;
-                chunk = tempChunkBuffer.toArray();
+                chunk = Buffer.toArray(tempChunkBuffer);
                 created = 0 ;
                 lastUpdated = 0 ;
                 };
@@ -342,7 +342,7 @@ module {
             
         // now we take these chunks and create a blob 
 
-        var tempBlob : Blob  = Blob.fromArray (tempArchiveChunks.toArray()) ;
+        var tempBlob : Blob  = Blob.fromArray (Buffer.toArray(tempArchiveChunks)) ;
         //Debug.print("RESTORE ARCHIVE - tempBlob.size()  " # debug_show(tempBlob.size()));
     
         return tempBlob;

@@ -5,7 +5,16 @@ import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
+import Hash "mo:base/Hash";
 import Int "mo:base/Int";
+
+
+import HashMap "mo:base/HashMap";
+
+import TrieMap "mo:base/TrieMap";
+import Nat "mo:base/Nat";
+
+import Iter "mo:base/Iter";
 
 import ICArchiveUtils "icArchiveUtils"; // the module from ICArchive (icArchiveUtils.mo)
 
@@ -127,24 +136,42 @@ actor Self {
     /////////////////////////////////
     
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /////////////////////////////////
+    /// HELLO ICPIPELINE FUCTIONS - AKA YOUR APP ////// BEGIN
+    /////////////////////////////////
+    
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     stable var theHistoryStable : [Text] = [];
 
     var theHistoryBuffer : Buffer.Buffer<Text> = Buffer.Buffer(0);
+
+    var theHashCounter: Nat = 0 ;
+
+    let theHistoryHashMap = HashMap.HashMap<Nat, Text>(0, Nat.equal, Hash.hash );   
+
+    var theTrieCounter: Nat = 0 ;
+    let theHistoryTrieMap = TrieMap.TrieMap<Nat, Text>(Nat.equal, Hash.hash) ;
+
 
     // public type MyArchiveObject = {
     //     historyBufferObject :  Buffer.Buffer<Text>;
     // } ; // end the backup object
     public type MyArchiveObject = {
         historyArrayObject : [Text];
-        historyBufferObject : Buffer.Buffer<Text>;
+        historyBufferObject : [Text];
+        historyHashObject : [(Nat, Text)];
+        historyTrieObject : [(Nat, Text)];
     } ; // end the backup object
 
 
 
 
     public shared({caller}) func greet(name : Text) : async Text {
-
-       theHistoryBuffer.add(name);
 
         let newBuffer : Buffer.Buffer<Text> = Buffer.Buffer(0);
         for (x in theHistoryStable.vals()) {
@@ -154,20 +181,76 @@ actor Self {
         };
         newBuffer.add (name);
         
-       theHistoryStable := newBuffer.toArray();
+        theHistoryStable := Buffer.toArray(newBuffer);
+       
+        theHistoryBuffer.add(name);
+
+        theHashCounter +=1 ;
+        theHistoryHashMap.put (theHashCounter,name ) ;
+
+        theTrieCounter +=1 ;
+        theHistoryTrieMap.put (theHashCounter,name ) ;
+
+
        
 
-        return "Hello Pipeline, " # name # "!";
-    };
+        return "Hello There, " # name # "!";
+
+    }; // end greet
+
     public query func getHistoryBuffer() : async [Text] {
         
-        return theHistoryBuffer.toArray() ;
-    };
+        return Buffer.toArray(theHistoryBuffer) ;
+    }; // end getHistoryBuffer
     public query func getHistoryStable() : async [Text] {
         
         return theHistoryStable ;
+    }; // end getHistoryStable
+
+    public query func getHistoryHashMap() : async [(Nat, Text)] {
+        
+        return Iter.toArray(theHistoryHashMap.entries())
+    }; // end getHistoryHashMap
+
+    public query func getHistoryTrieMap() : async [(Nat, Text)] {
+        
+        return Iter.toArray(theHistoryHashMap.entries())
     };
 
+
+    public shared func clearDataMain() : async Text {
+        theHistoryStable:=[];
+        theHistoryBuffer:=Buffer.Buffer(0);
+
+
+          theHashCounter:= 0 ;
+
+        
+         for ((key, value) in theHistoryHashMap.entries()) {
+            theHistoryHashMap.delete(key) ;
+
+          };
+
+          theTrieCounter:= 0 ;
+        
+         for ((key, value) in theHistoryTrieMap.entries()) {
+            theHistoryTrieMap.delete(key) ;
+
+          };
+
+        return "OK" ;
+    };
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /////////////////////////////////
+    /// HELLO ICPIPELINE FUCTIONS - AKA YOUR APP ////// END
+    /////////////////////////////////
+    
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // ********************************************* 
   // ************* ICArchive Functions **************
@@ -200,9 +283,9 @@ actor Self {
 
   public shared({caller}) func doICArchiveMain () : async ArchiveResponse {
     
-    if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
-      assert(false);
-    };// end if we need to assert
+    // if ( Principal.fromText(icpmCanisterId) != caller and Principal.fromText(archiveCanisterId) != caller) {
+    //   assert(false);
+    // };// end if we need to assert
 
     var tempMsg: Text = "";
     var tempResponseStatus: Text = "Green" ;
@@ -225,7 +308,9 @@ actor Self {
             // create object for archive 
             var tempArchiveObject : MyArchiveObject = {
                 historyArrayObject = theHistoryStable;
-                historyBufferObject = theHistoryBuffer;
+                historyBufferObject = Buffer.toArray(theHistoryBuffer);
+                historyHashObject = Iter.toArray(theHistoryHashMap.entries());
+                historyTrieObject = Iter.toArray(theHistoryTrieMap.entries());
               };
 
             var tempArchiveType : Text = "My History Archive";
@@ -269,6 +354,9 @@ actor Self {
     var tempArchiveObjectRestored : MyArchiveObject = {
         historyArrayObject =[] ;
         historyBufferObject = [];
+        historyHashObject = [];
+        historyTrieObject = [];
+        
     };
 
     var tempArchiveFirst : Archive = {
@@ -311,12 +399,14 @@ actor Self {
             // create object for archive 
             var tempArchiveObject : MyArchiveObject = {
                 historyArrayObject = theHistoryStable;
-                historyBufferObject = theHistoryBuffer;
+                historyBufferObject = Buffer.toArray(theHistoryBuffer);
+                historyHashObject = Iter.toArray(theHistoryHashMap.entries());
+                historyTrieObject = Iter.toArray(theHistoryTrieMap.entries());
               };
 
             var tempArchiveType : Text = "My History Archive";
 
-            var tempArchiveMsg : Text = "User Requested Archive";
+            var tempArchiveMsg : Text = "Automated Archive before Restore";
 
             // convert archive to blob and send to archive func 
 
@@ -355,7 +445,70 @@ actor Self {
         
 
         theHistoryStable := tempArchiveObjectRestored.historyArrayObject ;
-        theHistoryBuffer := tempArchiveObjectRestored.historyBufferObject ;
+        
+          // the array was stable so apple for apple
+          let tempArray : [Text] = tempArchiveObjectRestored.historyBufferObject ;
+          
+          // buffer needs to be rebuilt from the array we archived
+
+          let tempBuffer : Buffer.Buffer<Text> = Buffer.Buffer(tempArray.size());
+            
+          for (x in tempArray.vals()) {
+            
+              tempBuffer.add(x);
+            
+          };
+        
+          
+          theHistoryBuffer := tempBuffer ;
+
+          // now for the HashMap which also was stored as an array that needs to be rebuilt, but only after we delete everthing in the other one.
+
+
+          // first we remove the entries from the hash we have now
+
+         for ((key, value) in theHistoryHashMap.entries()) {
+            theHistoryHashMap.delete(key) ;
+
+          };
+          // then we add the ones from the archive
+
+          let archiveHashMap = HashMap.fromIter<Nat, Text>(
+                  tempArchiveObjectRestored.historyHashObject.vals(), 0, Nat.equal, Hash.hash);
+         
+          var theHashCounter: Nat = 0 ;
+          for ((key, value) in archiveHashMap.entries()) {
+            
+            theHashCounter +=1;
+
+            theHistoryHashMap.put (key, value ) ;
+            
+          }; // end for through map in archive
+
+
+          // now for the TrieMap which also was stored as an array that needs to be rebuilt, but only after we delete everthing in the other one.
+
+
+          // first we remove the entries from the hash we have now
+
+         for ((key, value) in theHistoryTrieMap.entries()) {
+            theHistoryTrieMap.delete(key) ;
+
+          };
+          // then we add the ones from the archive
+
+          let archiveTrieMap = TrieMap.fromEntries<Nat, Text>(
+                  tempArchiveObjectRestored.historyTrieObject.vals(), Nat.equal, Hash.hash);
+         
+          var theTrieCounter: Nat = 0 ;
+          for ((key, value) in archiveTrieMap.entries()) {
+            
+            theHashCounter +=1;
+
+            theHistoryTrieMap.put (key, value ) ;
+            
+          }; // end for through map in archive
+
 
 
 

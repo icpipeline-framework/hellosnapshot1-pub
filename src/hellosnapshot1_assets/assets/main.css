@@ -30,6 +30,14 @@ section {
     margin: 10px auto;
     float: right;
 }
+#doBackupBtn {
+    padding: 5px 20px;
+    margin: 10px auto;
+}
+#clearDataBtn {
+    padding: 5px 20px;
+    margin: 10px auto;
+}
 
 #greeting {
     margin: 10px auto;
@@ -42,6 +50,18 @@ section {
     border: 1px solid #222;
 }
 #historyStable {
+    margin: 10px auto;
+    padding: 10px 60px;
+    border: 1px solid #222;
+}
+
+#historyHash {
+    margin: 10px auto;
+    padding: 10px 60px;
+    border: 1px solid #222;
+}
+
+#historyTrie {
     margin: 10px auto;
     padding: 10px 60px;
     border: 1px solid #222;
