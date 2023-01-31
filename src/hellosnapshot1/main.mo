@@ -136,6 +136,7 @@ actor Self {
     // } ; // end the backup object
     public type MyArchiveObject = {
         historyArrayObject : [Text];
+        historyBufferObject : Buffer.Buffer<Text>;
     } ; // end the backup object
 
 
@@ -224,6 +225,7 @@ actor Self {
             // create object for archive 
             var tempArchiveObject : MyArchiveObject = {
                 historyArrayObject = theHistoryStable;
+                historyBufferObject = theHistoryBuffer;
               };
 
             var tempArchiveType : Text = "My History Archive";
@@ -266,6 +268,7 @@ actor Self {
 
     var tempArchiveObjectRestored : MyArchiveObject = {
         historyArrayObject =[] ;
+        historyBufferObject = [];
     };
 
     var tempArchiveFirst : Archive = {
@@ -308,6 +311,7 @@ actor Self {
             // create object for archive 
             var tempArchiveObject : MyArchiveObject = {
                 historyArrayObject = theHistoryStable;
+                historyBufferObject = theHistoryBuffer;
               };
 
             var tempArchiveType : Text = "My History Archive";
@@ -351,6 +355,7 @@ actor Self {
         
 
         theHistoryStable := tempArchiveObjectRestored.historyArrayObject ;
+        theHistoryBuffer := tempArchiveObjectRestored.historyBufferObject ;
 
 
 
