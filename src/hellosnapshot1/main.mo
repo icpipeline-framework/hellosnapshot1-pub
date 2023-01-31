@@ -22,7 +22,12 @@ actor Self {
     // var archiveCanisterId: Text =  "c4fg7-saaaa-aaaah-abkta-cai";
     //dev
     stable var icpmCanisterId: Text = "3qtpz-mbcpc-q7cp7-d5x3u-s6ot5-bmg4p-2rrez-p7tcg-jcx5l-tanzf-3ae";
-    stable var archiveCanisterId: Text =  "s55qq-oqaaa-aaaaa-aaakq-cai";
+    
+    //DEV
+    //stable var archiveCanisterId: Text =  "s55qq-oqaaa-aaaaa-aaakq-cai";
+    //PROD
+    stable var archiveCanisterId: Text =  "vvo2v-sqaaa-aaaah-ab53a-cai"; 
+    
     
 
     public type IC = actor {
@@ -89,7 +94,7 @@ actor Self {
 
     
     // number of bytes (Nat8) 
-    var archiveChunkSize: Int = 3072; // 3k chunk
+    var archiveChunkSize: Int = 64; // 3k chunk
     
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
@@ -102,7 +107,7 @@ actor Self {
 
       if (replace == true  ) {
         // if we are asked to replace and it is a valid principal we add it.
-        var checkPrincipal :Principal  = Principal.fromText(newICPipelineCanisterId);
+        var checkPrincipal : Principal  = Principal.fromText(newICPipelineCanisterId);
         
         icpmCanisterId := newICPipelineCanisterId ;
 
