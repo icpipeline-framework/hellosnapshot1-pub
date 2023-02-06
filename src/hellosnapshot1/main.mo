@@ -103,7 +103,8 @@ actor Self {
 
     
     // number of bytes (Nat8) 
-    var archiveChunkSize: Int = 64; // 3k chunk
+    var archiveChunkSize: Int = 128; // # of Nat 8 (byte) possible in the array that makes a chunk theoretical max of 2,000,000 (probably safer to use 1,900,000) 
+                                    // might also find that many smaller chunks is better and less costly  ... we have to do some testing on that ourselves and get back to you.
     
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
